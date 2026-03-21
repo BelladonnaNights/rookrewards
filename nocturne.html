@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Nocturne Society — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0808;--deep:#120e0e;--card-bg:#1a1414;--gold:#c9a84c;--gold-light:#e2c97e;--gold-dim:#7a6330;--magenta:#b5407a;--purple:#7B5EA7;--cream:#f0e6d3;--muted:#8a7a6a;--border:rgba(201,168,76,0.25);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--black);color:var(--cream);font-family:'IM Fell English',serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:0.4;}
+.site-nav{background:#0d0a0a;border-bottom:1px solid var(--border);padding:0.75rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;position:sticky;top:0;z-index:500;}
+.nav-brand{font-family:'Cinzel Decorative',serif;font-size:0.75rem;letter-spacing:0.15em;color:var(--gold);text-decoration:none;}
+.nav-links{display:flex;gap:0.25rem;flex-wrap:wrap;}
+.nav-link{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:0.4rem 0.9rem;border:1px solid transparent;transition:all 0.2s;}
+.nav-link:hover{color:var(--cream);border-color:var(--border);}.nav-link.active{color:var(--gold);border-color:var(--gold-dim);background:rgba(201,168,76,0.05);}
+.page-header{background:linear-gradient(180deg,#1a0f0a 0%,#0a0808 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+.page-header h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.8rem,5vw,3.2rem);color:var(--gold);text-shadow:0 0 40px rgba(201,168,76,0.3);letter-spacing:0.06em;margin-bottom:0.75rem;}
+.page-header p{font-style:italic;color:var(--cream);opacity:0.75;font-size:clamp(0.9rem,2vw,1.1rem);max-width:600px;margin:0 auto;}
+.gold-rule{width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--gold-light),var(--gold),transparent);opacity:0.5;margin-top:2rem;}
+.loading-overlay{position:fixed;inset:0;background:rgba(10,8,8,0.9);z-index:9998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;}
+.loading-overlay p{font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;}
+.spinner{width:36px;height:36px;border:3px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+footer{border-top:1px solid var(--border);padding:2rem;text-align:center;}
+.footer-logo{font-family:'Cinzel Decorative',serif;font-size:0.9rem;color:var(--gold-dim);letter-spacing:0.1em;margin-bottom:0.4rem;}
+footer p{font-size:0.75rem;color:var(--muted);opacity:0.6;font-style:italic;}
+
+/* ── LOGIN ── */
+#admin-login{position:fixed;inset:0;background:rgba(5,3,3,0.97);z-index:9999;display:flex;align-items:center;justify-content:center;}
+.login-box{background:var(--card-bg);border:1px solid rgba(123,94,167,0.4);padding:3rem 2.5rem;text-align:center;max-width:360px;width:90%;}
+.login-box h2{font-family:'Cinzel Decorative',serif;color:var(--purple);font-size:1.3rem;margin-bottom:0.5rem;}
+.login-box p{font-style:italic;color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem;}
+.login-box input{width:100%;background:#0f0c0c;border:1px solid var(--border);color:var(--cream);font-family:'IM Fell English',serif;font-size:1rem;padding:0.75rem 1rem;margin-bottom:1rem;outline:none;}
+.login-box input:focus{border-color:var(--purple);}
+.login-box button{width:100%;font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.85rem;background:linear-gradient(135deg,var(--purple),#9b7ec7);color:white;border:none;cursor:pointer;}
+.form-error{color:#c04040;font-size:0.78rem;font-style:italic;margin-top:0.5rem;display:none;}
+/* ── MAIN LAYOUT ── */
+.nocturne-main{max-width:1100px;margin:0 auto;padding:3rem 1.5rem 6rem;}
+/* ── STATS BAR ── */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:3rem;}
+.stat-card{background:var(--card-bg);border:1px solid var(--border);padding:1.25rem;text-align:center;}
+.stat-num{font-family:'Cinzel Decorative',serif;font-size:2rem;color:var(--gold);line-height:1;}
+.stat-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-top:0.4rem;}
+/* ── CONTROLS ── */
+.controls-bar{display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;margin-bottom:2rem;}
+.ctrl-btn{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.5rem 1.2rem;border:1px solid;cursor:pointer;background:transparent;transition:all 0.2s;}
+.ctrl-btn.primary{border-color:var(--purple);color:var(--purple);}.ctrl-btn.primary:hover{background:var(--purple);color:white;}
+.ctrl-btn.gold{border-color:var(--gold);color:var(--gold);}.ctrl-btn.gold:hover{background:var(--gold);color:var(--black);}
+.ctrl-btn.danger{border-color:#8b2020;color:#c04040;}.ctrl-btn.danger:hover{background:#8b2020;color:white;}
+.search-box{flex:1;min-width:200px;background:#0f0c0c;border:1px solid var(--border);color:var(--cream);font-family:'IM Fell English',serif;font-size:0.9rem;padding:0.5rem 0.85rem;outline:none;}
+.search-box:focus{border-color:var(--purple);}
+/* ── MEMBER TABLE ── */
+.member-table-wrap{overflow-x:auto;}
+.member-table{width:100%;border-collapse:collapse;}
+.member-table th{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold-dim);padding:0.6rem 1rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.member-table td{padding:0.85rem 1rem;border-bottom:1px solid rgba(201,168,76,0.08);font-size:0.88rem;vertical-align:middle;}
+.member-table tr:hover td{background:rgba(201,168,76,0.03);}
+.member-num{font-family:'Cinzel',serif;font-size:0.75rem;color:var(--gold-dim);letter-spacing:0.1em;}
+.member-name{font-weight:600;color:var(--cream);}
+.stamp-count{font-family:'Cinzel Decorative',serif;font-size:1.1rem;}
+.stamp-count.l1{color:var(--gold-dim);}
+.stamp-count.l2{color:var(--purple);}
+.stamp-count.l3{color:var(--magenta);}
+.status-badge{font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid;display:inline-block;}
+.status-badge.active{border-color:var(--purple);color:var(--purple);}
+.status-badge.legend{border-color:var(--magenta);color:var(--magenta);}
+.status-badge.stamp{border-color:var(--gold-dim);color:var(--gold-dim);}
+.passport-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.passport-dot.yes{background:var(--purple);}
+.passport-dot.no{background:#333;border:1px solid #555;}
+.row-actions{display:flex;gap:0.4rem;}
+.row-btn{font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.25rem 0.6rem;border:1px solid;cursor:pointer;background:transparent;transition:all 0.15s;white-space:nowrap;}
+.row-btn.edit{border-color:var(--gold-dim);color:var(--gold-dim);}.row-btn.edit:hover{background:rgba(201,168,76,0.1);color:var(--gold);}
+.row-btn.del{border-color:#5a1a1a;color:#884444;}.row-btn.del:hover{background:rgba(90,26,26,0.4);color:#ff6666;}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);font-style:italic;}
+/* ── 100 STAMP HALL ── */
+.hall-section{margin-top:4rem;}
+.hall-header{font-family:'Cinzel Decorative',serif;font-size:1.4rem;color:var(--magenta);margin-bottom:0.5rem;}
+.hall-sub{font-style:italic;color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;}
+.hall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.hall-card{background:linear-gradient(135deg,#1a0f14,#120a0e);border:1px solid rgba(181,64,122,0.3);padding:1.5rem;text-align:center;position:relative;overflow:hidden;}
+.hall-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--magenta),transparent);}
+.hall-card-num{font-family:'Cinzel Decorative',serif;font-size:0.7rem;color:var(--magenta);opacity:0.5;letter-spacing:0.2em;margin-bottom:0.4rem;}
+.hall-card-name{font-family:'Cinzel',serif;font-size:1rem;color:var(--cream);margin-bottom:0.25rem;}
+.hall-card-date{font-size:0.75rem;color:var(--muted);font-style:italic;}
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(5,3,3,0.94);z-index:9990;display:none;align-items:center;justify-content:center;}
+.modal-box{background:#1a1414;border:1px solid rgba(123,94,167,0.4);padding:2rem;max-width:500px;width:92%;max-height:88vh;overflow-y:auto;}
+.modal-box h3{font-family:'Cinzel',serif;color:var(--purple);font-size:0.85rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1.2rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;}
+.modal-box label{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.15em;color:var(--gold-dim);text-transform:uppercase;display:block;margin:0.8rem 0 0.3rem;}
+.modal-box label:first-of-type{margin-top:0;}
+.modal-box input[type=text],.modal-box input[type=number],.modal-box textarea,.modal-box select{width:100%;background:#0f0c0c;border:1px solid var(--border);color:var(--cream);font-family:'IM Fell English',serif;font-size:0.95rem;padding:0.6rem 0.85rem;outline:none;}
+.modal-box input:focus,.modal-box textarea:focus,.modal-box select:focus{border-color:var(--purple);}
+.modal-box textarea{min-height:70px;resize:vertical;}
+.modal-box select option{background:#1a1414;}
+.checkbox-row{display:flex;align-items:center;gap:0.75rem;margin-top:0.8rem;}
+.checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple);cursor:pointer;}
+.checkbox-row label{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.12em;color:var(--cream);text-transform:uppercase;margin:0;}
+.modal-actions{display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.25rem;}
+.em-btn{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.45rem 1.1rem;border:1px solid;cursor:pointer;background:transparent;transition:all 0.2s;}
+.em-btn.confirm{border-color:var(--purple);color:var(--purple);}.em-btn.confirm:hover{background:var(--purple);color:white;}
+.em-btn.danger{border-color:#8b2020;color:#c04040;}.em-btn.danger:hover{background:#8b2020;color:white;}
+.em-btn.cancel{border-color:#555;color:#777;}.em-btn.cancel:hover{border-color:#888;color:var(--cream);}
+/* ── WORD OF THE DAY ── */
+.wotd-panel{background:linear-gradient(135deg,#0f0c14,#0a0810);border:1px solid rgba(123,94,167,0.3);padding:2rem;margin-bottom:3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;}
+.wotd-left .wotd-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--purple);opacity:0.7;margin-bottom:0.4rem;}
+.wotd-word{font-family:'Cinzel Decorative',serif;font-size:2rem;color:var(--purple);letter-spacing:0.08em;text-shadow:0 0 20px rgba(123,94,167,0.4);}
+.wotd-sub{font-style:italic;font-size:0.8rem;color:var(--muted);margin-top:0.3rem;}
+.wotd-actions{display:flex;gap:0.75rem;flex-wrap:wrap;}
+.sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--purple);margin-right:0.4rem;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay" class="loading-overlay" style="display:none">
+  <div class="spinner"></div>
+  <p>Loading the Society&hellip;</p>
+</div>
+
+<!-- LOGIN -->
+<div id="admin-login">
+  <div class="login-box">
+    <h2>Nocturne Society</h2>
+    <p>Admin access only. Rook is watching.</p>
+    <input type="password" id="login-pw" placeholder="Password" onkeydown="if(event.key==='Enter')checkLogin()">
+    <button onclick="checkLogin()">Enter</button>
+    <div class="form-error" id="login-error">Wrong password. Rook disapproves.</div>
+  </div>
+</div>
+
+<nav class="site-nav">
+  <a href="index.html" class="nav-brand">🪶 Belladonna</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Rewards Vault</a>
+    <a href="loyalty.html" class="nav-link">Loyalty Program</a>
+    <a href="nocturne.html" class="nav-link active">Nocturne Society</a>
+  </div>
+</nav>
+
+<div class="page-header" style="border-bottom:1px solid rgba(123,94,167,0.3);">
+  <h1 style="color:var(--purple);">The Nocturne Society</h1>
+  <p>Member registry. Rook's inner circle. Handle with respect.</p>
+  <div class="gold-rule" style="background:linear-gradient(90deg,transparent,var(--purple),#9b7ec7,var(--purple),transparent);"></div>
+</div>
+
+<main class="nocturne-main">
+
+  <!-- WORD OF THE DAY -->
+  <div class="wotd-panel">
+    <div class="wotd-left">
+      <div class="wotd-label"><span class="sync-dot"></span>Word of the Day</div>
+      <div class="wotd-word" id="wotd-display">ROOK</div>
+      <div class="wotd-sub" id="wotd-updated">Loading&hellip;</div>
+    </div>
+    <div class="wotd-actions">
+      <button class="ctrl-btn primary" onclick="openSetWord()">&#x270E; Change Word</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total Members</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-active" style="color:var(--purple);">0</div><div class="stat-label">Nocturne Active</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-legend" style="color:var(--magenta);">0</div><div class="stat-label">100 Stamp Legends</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-stamps">0</div><div class="stat-label">Total Stamps Issued</div></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-bar">
+    <button class="ctrl-btn primary" onclick="openAddMember()">+ Add Member</button>
+    <input class="search-box" type="text" placeholder="Search by name, member number, venue&hellip;" oninput="onSearch(this.value)">
+  </div>
+
+  <!-- MEMBER TABLE -->
+  <div class="member-table-wrap">
+    <table class="member-table">
+      <thead>
+        <tr>
+          <th>Member #</th>
+          <th>Name</th>
+          <th>Stamps</th>
+          <th>Status</th>
+          <th>Passport</th>
+          <th>Home Venue</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="member-tbody">
+        <tr><td colspan="8"><div class="empty-state">Loading members&hellip;</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 100 STAMP HALL -->
+  <div class="hall-section">
+    <div class="hall-header">Rook's Murder Wall</div>
+    <div class="hall-sub">The 100 Stamp Legends. Nobody here yet. The wall is waiting.</div>
+    <div class="hall-grid" id="hall-grid"></div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-logo">Belladonna Audio Alchemies</div>
+  <p>The Nocturne Society. You know who you are.</p>
+</footer>
+
+<!-- MODALS -->
+<div class="overlay" id="modal-member">
+  <div class="modal-box">
+    <h3 id="modal-member-title">Add New Member</h3>
+    <label>Full Name</label>
+    <input type="text" id="m-name" placeholder="e.g. Jane Smith">
+    <label>Member Number</label>
+    <input type="text" id="m-membernum" placeholder="e.g. NS-001">
+    <label>Total Stamps</label>
+    <input type="number" id="m-stamps" min="0" max="999" value="20">
+    <label>Status</label>
+    <select id="m-status">
+      <option value="nocturne">Nocturne Society</option>
+      <option value="stamp">Stamp Card Only</option>
+    </select>
+    <label>Home Venue</label>
+    <input type="text" id="m-venue" placeholder="e.g. The Coaster">
+    <label>Notes</label>
+    <textarea id="m-notes" placeholder="Any notes about this member&hellip;"></textarea>
+    <div class="checkbox-row">
+      <input type="checkbox" id="m-passport">
+      <label for="m-passport">Belladonna Passport issued</label>
+    </div>
+    <div class="modal-actions">
+      <button class="em-btn cancel" onclick="closeModal('modal-member')">Cancel</button>
+      <button class="em-btn confirm" onclick="confirmSaveMember()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-wotd">
+  <div class="modal-box">
+    <h3>Change Word of the Day</h3>
+    <label>New Word (hosts will look this up at events)</label>
+    <input type="text" id="new-word-input" placeholder="e.g. CROW" style="text-transform:uppercase;letter-spacing:0.2em;font-size:1.2rem;">
+    <p style="font-style:italic;color:var(--muted);font-size:0.8rem;margin-top:0.75rem;">This syncs instantly. All devices will see the new word immediately.</p>
+    <div class="modal-actions">
+      <button class="em-btn cancel" onclick="closeModal('modal-wotd')">Cancel</button>
+      <button class="em-btn confirm" onclick="confirmSetWord()">Set Word</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-delete">
+  <div class="modal-box">
+    <h3>Remove Member</h3>
+    <p id="delete-msg" style="font-style:italic;color:var(--muted);margin:0.5rem 0 1.5rem;font-size:0.9rem;"></p>
+    <div class="modal-actions">
+      <button class="em-btn cancel" onclick="closeModal('modal-delete')">Cancel</button>
+      <button class="em-btn danger" onclick="confirmDelete()">Remove</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyC-ul_PMOuBmj3NftwIBQh8LRUbOTMrx_Y",
+    authDomain: "rook-rewards.firebaseapp.com",
+    projectId: "rook-rewards",
+    storageBucket: "rook-rewards.firebasestorage.app",
+    messagingSenderId: "960390359689",
+    appId: "1:960390359689:web:c352c3f2d15da6f5fa7458"
+};
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+const app = initializeApp(FIREBASE_CONFIG);
+const db  = getFirestore(app);
+
+const MEMBERS_COL  = collection(db, 'nocturne_members');
+const SETTINGS_DOC = doc(db, 'nocturne_settings', 'config');
+const PASSWORD     = '1111'; // Same as vault — change via code for now
+
+let members = [];
+let settings = { wordOfDay: 'ROOK', wordUpdated: '' };
+let editingId = null;
+let pendingDeleteId = null;
+let searchTerm = '';
+
+// ── BOOT ──
+document.addEventListener('DOMContentLoaded', () => {
+  // Show login
+  document.getElementById('admin-login').style.display = 'flex';
+});
+
+function enterApp() {
+  document.getElementById('admin-login').style.display = 'none';
+  document.getElementById('loading-overlay').style.display = 'flex';
+  listenToMembers();
+  listenToSettings();
+}
+
+// ── AUTH ──
+function checkLogin() {
+  const pw = document.getElementById('login-pw').value;
+  if (pw === PASSWORD) {
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('login-pw').value = '';
+    enterApp();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-pw').value = '';
+  }
+}
+
+// ── REAL-TIME LISTENERS ──
+function listenToMembers() {
+  const q = query(MEMBERS_COL, orderBy('joinedAt', 'desc'));
+  onSnapshot(q, (snap) => {
+    members = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('loading-overlay').style.display = 'none';
+    renderAll();
+  }, (err) => {
+    console.error(err);
+    document.getElementById('loading-overlay').style.display = 'none';
+    document.querySelector('.loading-overlay p').textContent = 'Connection error. Check Firestore rules.';
+  });
+}
+
+function listenToSettings() {
+  onSnapshot(SETTINGS_DOC, (snap) => {
+    if (snap.exists()) {
+      settings = snap.data();
+      renderWotd();
+    }
+  });
+}
+
+// ── RENDER ──
+function renderAll() {
+  renderStats();
+  renderTable();
+  renderHall();
+}
+
+function renderStats() {
+  const total  = members.length;
+  const active = members.filter(m => m.status === 'nocturne').length;
+  const legend = members.filter(m => m.stamps >= 100).length;
+  const stamps = members.reduce((a,m) => a + (parseInt(m.stamps)||0), 0);
+  document.getElementById('stat-total').textContent  = total;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-legend').textContent = legend;
+  document.getElementById('stat-stamps').textContent = stamps;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('member-tbody');
+  const filtered = members.filter(m => {
+    if (!searchTerm) return true;
+    const t = searchTerm.toLowerCase();
+    return (m.name||'').toLowerCase().includes(t) ||
+           (m.memberNum||'').toLowerCase().includes(t) ||
+           (m.venue||'').toLowerCase().includes(t);
+  });
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">${searchTerm ? 'No members match your search.' : 'No members yet. Add your first Nocturne Society member above.'}</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(m => {
+    const stamps = parseInt(m.stamps) || 0;
+    const stampClass = stamps >= 100 ? 'l3' : m.status === 'nocturne' ? 'l2' : 'l1';
+    const statusLabel = stamps >= 100 ? 'legend' : m.status === 'nocturne' ? 'active' : 'stamp';
+    const statusText  = stamps >= 100 ? '100 Legend' : m.status === 'nocturne' ? 'Nocturne' : 'Stamp Card';
+    return `<tr>
+      <td><span class="member-num">${m.memberNum||'—'}</span></td>
+      <td><span class="member-name">${m.name||'—'}</span></td>
+      <td><span class="stamp-count ${stampClass}">${stamps}</span></td>
+      <td><span class="status-badge ${statusLabel}">${statusText}</span></td>
+      <td><span class="passport-dot ${m.passport?'yes':'no'}" title="${m.passport?'Passport issued':'No passport'}"></span></td>
+      <td style="color:var(--muted);font-size:0.8rem;">${m.venue||'—'}</td>
+      <td style="color:var(--muted);font-size:0.8rem;">${m.joinedAt ? new Date(m.joinedAt).toLocaleDateString() : '—'}</td>
+      <td><div class="row-actions">
+        <button class="row-btn edit" onclick="openEdit('${m.id}')">✎ Edit</button>
+        <button class="row-btn del" onclick="promptDelete('${m.id}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHall() {
+  const legends = members.filter(m => parseInt(m.stamps) >= 100);
+  const grid = document.getElementById('hall-grid');
+  if (!legends.length) {
+    grid.innerHTML = '<p style="font-style:italic;color:var(--muted);font-size:0.9rem;">Nobody has reached 100 stamps yet. The wall is waiting.</p>';
+    return;
+  }
+  grid.innerHTML = legends.map(m => `
+    <div class="hall-card">
+      <div class="hall-card-num">Legend #${m.memberNum||'?'}</div>
+      <div class="hall-card-name">${m.name}</div>
+      <div class="hall-card-date">${m.stamps} stamps &bull; ${m.venue||''}</div>
+    </div>`).join('');
+}
+
+function renderWotd() {
+  document.getElementById('wotd-display').textContent = settings.wordOfDay || 'ROOK';
+  const updated = settings.wordUpdated ? new Date(settings.wordUpdated).toLocaleDateString() : 'Not set';
+  document.getElementById('wotd-updated').textContent = 'Last changed: ' + updated;
+}
+
+// ── WORD OF THE DAY ──
+function openSetWord() {
+  document.getElementById('new-word-input').value = settings.wordOfDay || '';
+  openModal('modal-wotd');
+}
+
+async function confirmSetWord() {
+  const word = document.getElementById('new-word-input').value.trim().toUpperCase();
+  if (!word) return;
+  settings.wordOfDay = word;
+  settings.wordUpdated = new Date().toISOString();
+  await setDoc(SETTINGS_DOC, settings);
+  closeModal('modal-wotd');
+}
+
+// ── ADD MEMBER ──
+function openAddMember() {
+  editingId = null;
+  document.getElementById('modal-member-title').textContent = 'Add New Member';
+  ['m-name','m-venue','m-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-stamps').value = '20';
+  document.getElementById('m-status').value = 'nocturne';
+  document.getElementById('m-passport').checked = false;
+  // Auto-generate member number
+  const nextNum = (members.length + 1).toString().padStart(3, '0');
+  document.getElementById('m-membernum').value = 'NS-' + nextNum;
+  openModal('modal-member');
+}
+
+// ── EDIT MEMBER ──
+function openEdit(id) {
+  const m = members.find(m => m.id === id);
+  if (!m) return;
+  editingId = id;
+  document.getElementById('modal-member-title').textContent = 'Edit Member';
+  document.getElementById('m-name').value      = m.name || '';
+  document.getElementById('m-membernum').value = m.memberNum || '';
+  document.getElementById('m-stamps').value    = m.stamps || 0;
+  document.getElementById('m-status').value    = m.status || 'nocturne';
+  document.getElementById('m-venue').value     = m.venue || '';
+  document.getElementById('m-notes').value     = m.notes || '';
+  document.getElementById('m-passport').checked = !!m.passport;
+  openModal('modal-member');
+}
+
+async function confirmSaveMember() {
+  const data = {
+    name:      document.getElementById('m-name').value.trim(),
+    memberNum: document.getElementById('m-membernum').value.trim(),
+    stamps:    parseInt(document.getElementById('m-stamps').value) || 0,
+    status:    document.getElementById('m-status').value,
+    venue:     document.getElementById('m-venue').value.trim(),
+    notes:     document.getElementById('m-notes').value.trim(),
+    passport:  document.getElementById('m-passport').checked,
+  };
+  if (!data.name) { alert('Name is required.'); return; }
+
+  if (editingId) {
+    await updateDoc(doc(db, 'nocturne_members', editingId), data);
+  } else {
+    data.joinedAt = new Date().toISOString();
+    await addDoc(MEMBERS_COL, data);
+  }
+  closeModal('modal-member');
+}
+
+// ── DELETE ──
+function promptDelete(id) {
+  pendingDeleteId = id;
+  const m = members.find(m => m.id === id);
+  document.getElementById('delete-msg').textContent = `Remove ${m ? m.name : 'this member'} from the Nocturne Society?`;
+  openModal('modal-delete');
+}
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  await deleteDoc(doc(db, 'nocturne_members', pendingDeleteId));
+  pendingDeleteId = null;
+  closeModal('modal-delete');
+}
+
+// ── SEARCH ──
+function onSearch(val) {
+  searchTerm = val;
+  renderTable();
+}
+
+// ── MODAL HELPERS ──
+function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); });
+});
+
+// Expose to HTML
+window.checkLogin   = checkLogin;
+window.openAddMember= openAddMember;
+window.openEdit     = openEdit;
+window.promptDelete = promptDelete;
+window.confirmSaveMember = confirmSaveMember;
+window.confirmDelete= confirmDelete;
+window.openSetWord  = openSetWord;
+window.confirmSetWord = confirmSetWord;
+window.closeModal   = closeModal;
+window.openModal    = openModal;
+window.onSearch     = onSearch;
+
+</script>
+</body>
+</html>

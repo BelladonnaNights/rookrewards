@@ -133,21 +133,29 @@ let unsubscribe = null;
 //  BOOT
 // ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('BOOT: started');
   showLoading(true);
   try {
+    console.log('BOOT: calling loadFromFirestore');
     await loadFromFirestore();
+    console.log('BOOT: loadFromFirestore done');
     applyAll();
+    console.log('BOOT: applyAll done');
     renderSections();
+    console.log('BOOT: renderSections done');
     listenForChanges();
+    console.log('BOOT: listenForChanges done');
   } catch(e) {
-    console.error('Vault boot failed, rendering defaults:', e);
+    console.error('BOOT: caught error', e);
     S.sections = DEFAULT_SECTIONS.map(sec => ({
       ...sec, products: sec.products.map(({img,...r}) => r)
     }));
     applyAll();
     renderSections();
   } finally {
+    console.log('BOOT: finally - hiding spinner');
     showLoading(false);
+    console.log('BOOT: complete');
   }
 });
 

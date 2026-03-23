@@ -76,7 +76,7 @@ footer{border-top:1px solid var(--border);padding:2rem;text-align:center;}.foote
 <div class="claim-section"><h2>Ready to Claim?</h2><p class="claim-sub">Rook will review your submission personally.<br>He takes this more seriously than seems necessary.</p><div class="claim-instructions"><div class="claim-instruction"><div class="ci-label">You Need</div><p>A completed 10-stamp loyalty card with host sign-off on the back</p></div><div class="claim-instruction"><div class="ci-label">Sign-Off Includes</div><p>Your name, venue, date, and host signature &mdash; written by the host, not you</p></div><div class="claim-instruction"><div class="ci-label">Delivery</div><p>Allow 7&ndash;10 days after your submission is approved</p></div><div class="claim-instruction"><div class="ci-label">One Per Card</div><p>Each completed card earns one reward. No duplicates. Rook is watching.</p></div></div><a href="https://forms.gle/nqEJqAav1jM6Kjzw7" target="_blank" class="claim-btn">Claim Your Reward &rarr;</a><p class="claim-note">🪶 Questions? Reach us at <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4321262f2f22272c2d2d222236272a2c222f202b262e2a263003242e222a2f6d202c2e">[email&#160;protected]</a></p></div>
 </main>
 <footer><div class="footer-logo">Belladonna Audio Alchemies</div><p>Rewards earned at live events. Rook is watching. He respects your commitment.</p></footer>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" type="module">
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyC-ul_PMOuBmj3NftwIBQh8LRUbOTMrx_Y",
     authDomain: "rook-rewards.firebaseapp.com",
@@ -104,11 +104,9 @@ const ORIG_IMGS = {
 // ═══════════════════════════════════════════
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
-
 const firebaseApp = initializeApp(FIREBASE_CONFIG);
 const db  = getFirestore(firebaseApp);
-const storage = getStorage(firebaseApp);
+let storage = null;
 
 const DOC_REF = doc(db, 'vault', 'config');
 
@@ -134,21 +132,11 @@ let unsubscribe = null;
 // ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
   showLoading(true);
-  try {
-    await loadFromFirestore();
-    applyAll();
-    renderSections();
-    listenForChanges();
-  } catch(e) {
-    console.error('Vault boot failed:', e);
-    S.sections = DEFAULT_SECTIONS.map(sec => ({
-      ...sec, products: sec.products.map(({img,...r}) => r)
-    }));
-    applyAll();
-    renderSections();
-  } finally {
-    showLoading(false);
-  }
+  await loadFromFirestore();
+  applyAll();
+  renderSections();
+  listenForChanges();
+  showLoading(false);
 });
 
 // ═══════════════════════════════════════════
@@ -251,6 +239,13 @@ function resetAll() {
 //  IMAGE UPLOAD TO FIREBASE STORAGE
 // ═══════════════════════════════════════════
 async function uploadImageToStorage(file, productId) {
+  if(!storage) {
+    const { getStorage, ref: _ref, uploadBytes: _ub, getDownloadURL: _gdl } =
+      await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js');
+    storage = getStorage(firebaseApp);
+    window._storageRef = _ref; window._uploadBytes = _ub; window._getDownloadURL = _gdl;
+  }
+  const ref = window._storageRef, uploadBytes = window._uploadBytes, getDownloadURL = window._getDownloadURL;
   const imgRef = ref(storage, `products/${productId}_${Date.now()}`);
   await uploadBytes(imgRef, file);
   const url = await getDownloadURL(imgRef);

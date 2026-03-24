@@ -131,12 +131,17 @@ let unsubscribe = null;
 //  BOOT
 // ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
-  showLoading(true);
-  await loadFromFirestore();
-  applyAll();
-  renderSections();
-  listenForChanges();
-  showLoading(false);
+  const spinnerKill = setTimeout(() => showLoading(false), 4000);
+  try {
+    showLoading(true);
+    await loadFromFirestore();
+    applyAll();
+    renderSections();
+    listenForChanges();
+  } finally {
+    clearTimeout(spinnerKill);
+    showLoading(false);
+  }
 });
 
 // ═══════════════════════════════════════════

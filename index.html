@@ -131,12 +131,18 @@ let unsubscribe = null;
 //  BOOT
 // ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
-  showLoading(true);
-  await loadFromFirestore();
-  applyAll();
-  renderSections();
-  listenForChanges();
-  showLoading(false);
+  // Hard timeout — spinner WILL die after 5s no matter what
+  const spinnerKill = setTimeout(() => showLoading(false), 5000);
+  try {
+    showLoading(true);
+    await loadFromFirestore();
+    applyAll();
+    renderSections();
+    listenForChanges();
+  } finally {
+    clearTimeout(spinnerKill);
+    showLoading(false);
+  }
 });
 
 // ═══════════════════════════════════════════
